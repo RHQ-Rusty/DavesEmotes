@@ -1,20 +1,27 @@
  --[[
  Commands
 
- Move Along: 	/ma  	: You can press E to wave the wand!
- Paparazzo: 	/pap 	: You can press E to take photos!
- Panhandle: 	/beg 	: Hold a sign asking for money!
+  - Finished
+
+ Move Along: 	        /ma  	: You can press E to wave the wand!
+ Paparazzo: 	        /pap 	: You can press E to take photos!
+ Panhandle: 	        /beg    : Hold a sign asking for money!
  Salute: 		/o7 	: Salute your commrads!
  Bird 1: 		/bird 	: One hand middle Finger
  Bird 2: 		/bird2 	: 2 hands middle finger
- Surrender: 	/k 		: Kneeldown hands behind head surrender
+ Surrender: 	        /k	: Kneeldown hands behind head surrender
  Facepalm: 		/palm	: Facepalm
  BongRip:		/bong	: Press E to take a fat rip!
- Cell Record:	/phoneR : Press E to take a picture! 
+ Cell Record:	        /phoneR : Press E to take a picture! 
  Notepad:		/ticket : Press E to check your watch
- Crowd Control:	/cc		: Press E to control the crowd!
- Slow Clap:		/sc		: Slow Clap
+ Crowd Control:	        /cc     : Press E to control the crowd!
+ Slow Clap:		/sc	: Slow Clap
  Umbrella:		/umb	: Pull out an umbrella on those rainy days!
+
+  - WIP
+
+ Cigarette:             /cig    : You can press E to smoke the cigarette!
+ Joint:                 /joint  : You can press E to smoke the join!
  
 ]]--
 
@@ -47,6 +54,14 @@ local pad_net = nil
 local holdingumb = false
 local umbmodel = "p_amb_brolly_01"
 local umb_net = nil
+
+local holdingcig = false
+local cigmodel = "prop_cs_ciggy_01"
+local cig_net = nil
+
+local holdingjoint = false
+local jointmodel = "prop_sh_joint_01 "
+local cig_net = nil
 
 
 -------------
@@ -738,6 +753,104 @@ RegisterCommand("cc",function(source, args)
 					fin = false
 				end
 			end
+		end
+	end
+end, false)
+
+
+-----------  Cig
+
+RegisterCommand("cig",function(source, args)
+	local ad1 = "amb@code_human_in_car_mp_actions@first_person@smoke@std@ds@base"
+	local ad1a = "enter"
+	local player = GetPlayerPed(-1)
+	local plyCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, -5.0)
+	local cigspawned = CreateObject(GetHashKey(cigmodel), plyCoords.x, plyCoords.y, plyCoords.z, 1, 1, 1)
+	local netid = ObjToNet(cigspawned)
+
+
+	if (DoesEntityExist(player) and not IsEntityDead(player)) then 
+		loadAnimDict(ad1)
+		RequestModel(GetHashKey(cigmodel))
+		if holdingcig then
+			Wait(100)
+			ClearPedSecondaryTask(GetPlayerPed(-1))
+			DetachEntity(NetToObj(cig_net), 1, 1)
+			DeleteEntity(NetToObj(cig_net))
+			cig_net = nil
+			holdingcig = false
+		else
+			Wait(500)
+			SetNetworkIdExistsOnAllMachines(netid, true)
+			NetworkSetNetworkIdDynamic(netid, true)
+			SetNetworkIdCanMigrate(netid, false)
+			AttachEntityToEntity(cigspawned,GetPlayerPed(PlayerId()),GetPedBoneIndex(GetPlayerPed(PlayerId()), 18905),0.10,-0.25,0.0,95.0,190.0,180.0,1,1,0,1,0,1)
+			Wait(120)
+			Notification("Press ~r~[E]~w~ to take a toke!")
+			cig_net = netid
+			holdingcig = true
+		end
+	end
+
+	while holdingcig do
+		Wait(0)
+		local plyCoords2 = GetEntityCoords(player, true)
+		local head = GetEntityHeading(player)
+		if IsControlJustPressed(0, 38) then
+			TaskPlayAnimAdvanced(player, ad1, ad1a, plyCoords2.x, plyCoords2.y, plyCoords2.z, 0.0, 0.0, head, 8.0, 1.0, 4000, 49, 0.25, 0, 0)
+			Wait(100)
+			Notification("You take a drag!")
+			Wait(7250)
+			TaskPlayAnim(player, ad2, ad2a, 8.0, 1.0, -1, 49, 0, 0, 0, 0)
+		end
+	end
+end, false)
+
+
+-----------  Joint
+
+RegisterCommand("joint",function(source, args)
+	local ad1 = "amb@code_human_in_car_mp_actions@first_person@smoke@std@ds@base"
+	local ad1a = "enter"
+	local player = GetPlayerPed(-1)
+	local plyCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, -5.0)
+	local jointspawned = CreateObject(GetHashKey(jointmodel), plyCoords.x, plyCoords.y, plyCoords.z, 1, 1, 1)
+	local netid = ObjToNet(jointspawned)
+
+
+	if (DoesEntityExist(player) and not IsEntityDead(player)) then 
+		loadAnimDict(ad1)
+		RequestModel(GetHashKey(jointmodel))
+		if holdingjoint then
+			Wait(100)
+			ClearPedSecondaryTask(GetPlayerPed(-1))
+			DetachEntity(NetToObj(joint_net), 1, 1)
+			DeleteEntity(NetToObj(joint_net))
+			joint_net = nil
+			holdingjoint = false
+		else
+			Wait(500)
+			SetNetworkIdExistsOnAllMachines(netid, true)
+			NetworkSetNetworkIdDynamic(netid, true)
+			SetNetworkIdCanMigrate(netid, false)
+			AttachEntityToEntity(jointspawned,GetPlayerPed(PlayerId()),GetPedBoneIndex(GetPlayerPed(PlayerId()), 18905),0.10,-0.25,0.0,95.0,190.0,180.0,1,1,0,1,0,1)
+			Wait(120)
+			Notification("Press ~r~[E]~w~ to take a toke!")
+			joint_net = netid
+			holdingjoint = true
+		end
+	end
+
+	while holdingjoint do
+		Wait(0)
+		local plyCoords2 = GetEntityCoords(player, true)
+		local head = GetEntityHeading(player)
+		if IsControlJustPressed(0, 38) then
+			TaskPlayAnimAdvanced(player, ad1, ad1a, plyCoords2.x, plyCoords2.y, plyCoords2.z, 0.0, 0.0, head, 8.0, 1.0, 4000, 49, 0.25, 0, 0)
+			Wait(100)
+			Notification("You take a puff puff, now pass!")
+			Wait(7250)
+			TaskPlayAnim(player, ad2, ad2a, 8.0, 1.0, -1, 49, 0, 0, 0, 0)
 		end
 	end
 end, false)
